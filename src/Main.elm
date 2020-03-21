@@ -2,11 +2,11 @@ module Main exposing (..)
 
 import Browser
 import List.Extra exposing (remove)
-import Html exposing (Html, Attribute, button, div, form, input, text, ul, li)
+import Html exposing (Html, Attribute, a, button, div, form, input, text, ul, li)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onInput, onClick, onSubmit)
 
-import Json.Decode as Decode
+import Regex
 
 
 
@@ -97,7 +97,14 @@ renderReference : Reference -> Html Msg
 renderReference ref =
   li []
     [ renderRemove ref
-    , text ref ]
+    , renderReferenceText ref ]
+
+renderReferenceText : String -> Html Msg
+renderReferenceText ref =
+  if validReference ref then
+    a [ href ref ][text ref]
+  else
+    text ref
 
 renderRemove : Reference -> Html Msg
 renderRemove ref =
@@ -105,3 +112,12 @@ renderRemove ref =
     [ type_ "button"
     , onClick (RemoveReference ref)]
     [ text "Remove" ]
+
+validReference : String -> Bool
+validReference ref =
+  Regex.contains link ref
+
+link : Regex.Regex
+link =
+  Maybe.withDefault Regex.never <|
+    Regex.fromString "^(https?://)"
