@@ -65,7 +65,7 @@ update msg model =
 view : Model -> Html Msg
 view model =
   div []
-    [ renderReference model.referenceList
+    [ renderReferenceList model.referenceList
     , Html.form []
       [ input
         [ onInput SaveReference ] []
@@ -79,8 +79,21 @@ view model =
 
 -- FUNCTIONS
 
-renderReference : List Reference -> Html msg
-renderReference lst =
+renderReferenceList : List Reference -> Html Msg
+renderReferenceList lst =
     lst
-       |> List.map (\l -> li [] [ text l ])
+       |> List.map (\l -> renderReference l)
        |> ul []
+
+renderReference : Reference -> Html Msg
+renderReference ref =
+  li []
+    [ renderRemove ref
+    , text ref ]
+
+renderRemove : Reference -> Html Msg
+renderRemove ref =
+  button
+    [ type_ "button"
+    , onClick (RemoveReference ref)]
+    [ text "Remove" ]
