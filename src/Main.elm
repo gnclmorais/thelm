@@ -53,9 +53,13 @@ update msg model =
     SaveReference ref ->
       { model | openReference = ref }
     AddReference ->
-      { openReference = ""
-      , referenceList = model.openReference :: model.referenceList
-      }
+      if not(String.isEmpty model.openReference) then
+        { model
+        | openReference = ""
+        , referenceList = model.openReference :: model.referenceList
+        }
+      else
+        model
     RemoveReference ref ->
       { openReference = ""
       , referenceList = remove ref model.referenceList
@@ -71,7 +75,8 @@ view model =
     , Html.form
       [ onSubmit AddReference ]
       [ input
-        [ onInput SaveReference ] []
+        [ value model.openReference
+        , onInput SaveReference ] []
       , button
         [ type_ "button"
         , onClick AddReference ] [ text "+" ]
