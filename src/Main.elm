@@ -2,9 +2,11 @@ module Main exposing (..)
 
 import Browser
 import List.Extra exposing (remove)
-import Html exposing (Html, button, div, form, input, text, ul, li)
+import Html exposing (Html, Attribute, button, div, form, input, text, ul, li)
 import Html.Attributes exposing (..)
-import Html.Events exposing (onClick, onInput)
+import Html.Events exposing (onInput, onClick, onSubmit)
+
+import Json.Decode as Decode
 
 
 
@@ -66,7 +68,8 @@ view : Model -> Html Msg
 view model =
   div []
     [ renderReferenceList model.referenceList
-    , Html.form []
+    , Html.form
+      [ onSubmit AddReference ]
       [ input
         [ onInput SaveReference ] []
       , button
