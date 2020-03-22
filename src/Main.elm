@@ -4,7 +4,9 @@ import Browser
 import Html exposing (Html, a, button, div, form, img, input, li, text, ul)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onInput, onSubmit)
+import Json.Encode as Encode
 import List.Extra exposing (remove)
+import Ports
 import Regex
 
 
@@ -22,11 +24,13 @@ type alias Model =
     }
 
 
-init : Model
-init =
-    { openReference = ""
-    , referenceList = []
-    }
+init : () -> ( Model, Cmd Msg )
+init _ =
+    ( { openReference = ""
+      , referenceList = []
+      }
+    , Cmd.none
+    )
 
 
 
@@ -34,9 +38,10 @@ init =
 
 
 main =
-    Browser.sandbox
+    Browser.element
         { init = init
         , update = update
+        , subscriptions = \_ -> Sub.none
         , view = view
         }
 
@@ -51,26 +56,33 @@ type Msg
     | RemoveReference Reference
 
 
-update : Msg -> Model -> Model
+update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         SaveReference ref ->
-            { model | openReference = ref }
+            ( { model | openReference = ref }, Cmd.none )
 
         AddReference ->
             if not (String.isEmpty model.openReference) then
-                { model
-                    | openReference = ""
-                    , referenceList = model.openReference :: model.referenceList
-                }
+                let
+                    newReferences = model.openReference :: model.referenceList
+                in
+                    ( { model
+                        | openReference = ""
+                        , referenceList = newReferences
+                    }
+                    , saveReferences newReferences
+                    )
 
             else
-                model
+                ( model, Cmd.none )
 
         RemoveReference ref ->
-            { openReference = ""
-            , referenceList = remove ref model.referenceList
-            }
+            ( { openReference = ""
+              , referenceList = remove ref model.referenceList
+              }
+            , Cmd.none
+            )
 
 
 
@@ -118,6 +130,8 @@ renderReference ref =
         ]
 
 
+
+
 renderReferenceText : String -> Html Msg
 renderReferenceText ref =
     if validReference ref then
@@ -145,3 +159,16 @@ link : Regex.Regex
 link =
     Maybe.withDefault Regex.never <|
         Regex.fromString "^(https?://)"
+
+
+saveReferences : List Reference -> Cmd msg
+saveReferences references =
+    Encode.list referenceEncode references
+        |> Encode.encode 0
+        |> Ports.storeReferences
+
+
+referenceEncode : Reference -> Encode.Value
+referenceEncode ref =
+    Encode.object
+        [ ( "reference", Encode.string ref ) ]
