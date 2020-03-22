@@ -1,7 +1,7 @@
 module Main exposing (..)
 
 import Browser
-import Html exposing (Attribute, Html, a, button, div, form, input, li, text, ul)
+import Html exposing (Html, a, button, div, form, img, input, li, text, ul)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onInput, onSubmit)
 import List.Extra exposing (remove)
@@ -113,6 +113,7 @@ renderReference : Reference -> Html Msg
 renderReference ref =
     li []
         [ renderRemove ref
+        , img [ src ("https://www.google.com/s2/favicons?domain=" ++ ref) ] []
         , renderReferenceText ref
         ]
 
