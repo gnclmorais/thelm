@@ -9,3 +9,6 @@ reactor:
 
 open:
 	open index.html
+
+serve:
+	http-server -p 3000 --cors
