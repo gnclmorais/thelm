@@ -10,14 +10,22 @@
 
 	<script src="app.js"></script>
 	<script>
+		var storageKey = 'post-app-save';
+		var storedState = localStorage.getItem(storageKey);
+		console.log("Retrieved state: ", storedState);
+		var startingState = storedState ? JSON.parse(storedState) : null;
+
 		var appContainer = document.getElementById('app');
-		var app = Elm.Main.init({ node: appContainer });
+		var app = Elm.Main.init({
+			node: appContainer,
+			flags: startingState,
+		});
 
 		app.ports.storeReferences.subscribe(function (references) {
 			if (references.length === 0) return;
 
 			var referencesJson = JSON.stringify(references);
-			localStorage.setItem('post-app-save', referencesJson);
+			localStorage.setItem(storageKey, referencesJson);
 			console.log('Saved state: ', referencesJson);
 		});
 	</script>

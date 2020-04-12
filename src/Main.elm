@@ -1,9 +1,13 @@
 module Main exposing (..)
 
+import Debug exposing (log)
+
 import Browser
-import Html exposing (Html, a, button, div, form, img, input, li, text, ul)
-import Html.Attributes exposing (..)
+import Html exposing (Html, a, button, div, form, img, input, label, li, text, ul)
+import Html.Attributes exposing (autofocus, href, src, type_, value)
 import Html.Events exposing (onClick, onInput, onSubmit)
+import Json.Decode as Decode exposing (Decoder, Error(..), decodeString, list, string, succeed)
+import Json.Decode.Pipeline exposing (required)
 import Json.Encode as Encode
 import List.Extra exposing (remove)
 import Ports
@@ -15,7 +19,9 @@ import Regex
 
 
 type alias Reference =
-    String
+    { name : String
+    , link : String
+    }
 
 
 type alias Model =
@@ -24,9 +30,12 @@ type alias Model =
     }
 
 
-init : () -> ( Model, Cmd Msg )
-init _ =
-    ( { openReference = ""
+init : Maybe String -> ( Model, Cmd Msg )
+init flags =
+    ( { openReference =
+            { name = ""
+            , link = ""
+            }
       , referenceList = []
       }
     , Cmd.none
@@ -37,6 +46,7 @@ init _ =
 -- MAIN
 
 
+main : Program (Maybe String) Model Msg
 main =
     Browser.element
         { init = init
@@ -51,7 +61,8 @@ main =
 
 
 type Msg
-    = SaveReference Reference
+    = SaveReferenceName String
+    | SaveReferenceLink String
     | AddReference
     | RemoveReference Reference
 
@@ -59,26 +70,42 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        SaveReference ref ->
-            ( { model | openReference = ref }, Cmd.none )
+        SaveReferenceName name ->
+            ( { model | openReference = { name = name, link = model.openReference.link } }, Cmd.none )
+
+        SaveReferenceLink link ->
+            ( { model | openReference = { name = model.openReference.name, link = link } }, Cmd.none )
 
         AddReference ->
-            if not (String.isEmpty model.openReference) then
+            let
+                ref =
+                    model.openReference
+            in
+            if validReference ref then
                 let
-                    newReferences = model.openReference :: model.referenceList
+                    newReferences =
+                        ref :: model.referenceList
                 in
-                    ( { model
-                        | openReference = ""
-                        , referenceList = newReferences
-                    }
-                    , saveReferences newReferences
-                    )
+
+                ( { model
+                    | openReference =
+                        { name = ""
+                        , link = ""
+                        }
+                    , referenceList = newReferences
+                  }
+                , saveReferences newReferences
+                )
 
             else
+                log "nothing"
                 ( model, Cmd.none )
 
         RemoveReference ref ->
-            ( { openReference = ""
+            ( { openReference =
+                    { name = ""
+                    , link = ""
+                    }
               , referenceList = remove ref model.referenceList
               }
             , Cmd.none
@@ -95,14 +122,25 @@ view model =
         [ renderReferenceList model.referenceList
         , Html.form
             [ onSubmit AddReference ]
-            [ input
-                [ value model.openReference
-                , autofocus True
-                , onInput SaveReference
+            [ label []
+                [ text "Name"
+                , input
+                    [ value model.openReference.name
+                    , autofocus True
+                    , onInput SaveReferenceName
+                    ]
+                    []
                 ]
-                []
+            , label []
+                [ text "Link"
+                , input
+                    [ value model.openReference.link
+                    , onInput SaveReferenceLink
+                    ]
+                    []
+                ]
             , button
-                [ type_ "button"
+                [ type_ "submit"
                 , onClick AddReference
                 ]
                 [ text "+" ]
@@ -125,20 +163,18 @@ renderReference : Reference -> Html Msg
 renderReference ref =
     li []
         [ renderRemove ref
-        , img [ src ("https://www.google.com/s2/favicons?domain=" ++ ref) ] []
+        , img [ src ("https://www.google.com/s2/favicons?domain=" ++ ref.link) ] []
         , renderReferenceText ref
         ]
 
 
-
-
-renderReferenceText : String -> Html Msg
-renderReferenceText ref =
-    if validReference ref then
-        a [ href ref ] [ text ref ]
+renderReferenceText : { name : String, link : String } -> Html Msg
+renderReferenceText { name, link } =
+    if validLink link then
+        a [ href link ] [ text name ]
 
     else
-        text ref
+        text name
 
 
 renderRemove : Reference -> Html Msg
@@ -150,13 +186,29 @@ renderRemove ref =
         [ text "Remove" ]
 
 
-validReference : String -> Bool
-validReference ref =
-    Regex.contains link ref
+validReference : { a | name : String, link : String } -> Bool
+validReference { name, link } =
+    not (String.isEmpty name)
+        && (String.isEmpty link || validLink link)
 
 
-link : Regex.Regex
-link =
+isValidReference : { a | name : String } -> Bool
+isValidReference { name } =
+    String.isEmpty name
+
+
+hasLinkReference : { a | link : String } -> Bool
+hasLinkReference { link } =
+    String.isEmpty link && validLink link
+
+
+validLink : String -> Bool
+validLink link =
+    Regex.contains properLink link
+
+
+properLink : Regex.Regex
+properLink =
     Maybe.withDefault Regex.never <|
         Regex.fromString "^(https?://)"
 
@@ -171,4 +223,28 @@ saveReferences references =
 referenceEncode : Reference -> Encode.Value
 referenceEncode ref =
     Encode.object
-        [ ( "reference", Encode.string ref ) ]
+        [ ( "name", Encode.string ref.name )
+        , ( "link", Encode.string ref.link )
+        ]
+
+
+referencesDecoder : Decoder (List Reference)
+referencesDecoder =
+    Decode.list referenceDecoder
+
+
+referenceDecoder : Decoder Reference
+referenceDecoder =
+    Decode.succeed Reference
+        |> required "name" string
+        |> required "link" string
+
+
+decodeStoredReferences : String -> List Reference
+decodeStoredReferences referencesJson =
+    case decodeString referencesDecoder referencesJson of
+        Ok references ->
+            references
+
+        Err _ ->
+            []
