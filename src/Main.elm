@@ -1,8 +1,7 @@
 module Main exposing (..)
 
-import Debug exposing (log)
-
 import Browser
+import Debug exposing (log)
 import Html exposing (Html, a, button, div, form, img, input, label, li, text, ul)
 import Html.Attributes exposing (autofocus, href, src, type_, value)
 import Html.Events exposing (onClick, onInput, onSubmit)
@@ -32,11 +31,20 @@ type alias Model =
 
 init : Maybe String -> ( Model, Cmd Msg )
 init flags =
+    let
+        references =
+            case flags of
+                Just referencesJson ->
+                    decodeStoredReferences referencesJson
+
+                Nothing ->
+                    []
+    in
     ( { openReference =
             { name = ""
             , link = ""
             }
-      , referenceList = []
+      , referenceList = references
       }
     , Cmd.none
     )
@@ -86,7 +94,6 @@ update msg model =
                     newReferences =
                         ref :: model.referenceList
                 in
-
                 ( { model
                     | openReference =
                         { name = ""
@@ -99,16 +106,20 @@ update msg model =
 
             else
                 log "nothing"
-                ( model, Cmd.none )
+                    ( model, Cmd.none )
 
         RemoveReference ref ->
+            let
+                newReferences =
+                    remove ref model.referenceList
+            in
             ( { openReference =
                     { name = ""
                     , link = ""
                     }
-              , referenceList = remove ref model.referenceList
+              , referenceList = newReferences
               }
-            , Cmd.none
+            , saveReferences newReferences
             )
 
 
