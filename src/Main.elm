@@ -203,16 +203,6 @@ validReference { name, link } =
         && (String.isEmpty link || validLink link)
 
 
-isValidReference : { a | name : String } -> Bool
-isValidReference { name } =
-    String.isEmpty name
-
-
-hasLinkReference : { a | link : String } -> Bool
-hasLinkReference { link } =
-    String.isEmpty link && validLink link
-
-
 validLink : String -> Bool
 validLink link =
     Regex.contains properLink link
