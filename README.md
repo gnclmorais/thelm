@@ -7,7 +7,7 @@ Simple note/link manager, powered by [Elm][1] and [localStorage][2].
 Add small notes or links to [this page][0] and they’ll be available only to you.
 Remove them whenever you don’t need them anymore.
 
-![Thelm logo](assets/thelm.png)
+[![Usage example](assets/usage-example.gif)][0]
 
 
 ## Install & run
