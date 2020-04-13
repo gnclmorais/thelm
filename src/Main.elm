@@ -2,8 +2,9 @@ module Main exposing (..)
 
 import Browser
 import Debug exposing (log)
-import Html exposing (Html, a, button, div, form, img, input, label, li, text, ul)
-import Html.Attributes exposing (autofocus, href, src, type_, value)
+import FeatherIcons
+import Html exposing (Html, a, button, div, form, input, label, li, span, text, ul)
+import Html.Attributes exposing (autofocus, class, href, type_, value)
 import Html.Events exposing (onClick, onInput, onSubmit)
 import Json.Decode as Decode exposing (Decoder, Error(..), decodeString, list, string, succeed)
 import Json.Decode.Pipeline exposing (required)
@@ -129,33 +130,41 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-    div []
-        [ renderReferenceList model.referenceList
-        , Html.form
-            [ onSubmit AddReference ]
-            [ label []
-                [ text "Name"
-                , input
-                    [ value model.openReference.name
-                    , autofocus True
-                    , onInput SaveReferenceName
+    div [ class "wrapper u-height-100" ]
+        [ Html.form
+            [ class "section-add"
+            , onSubmit AddReference
+            ]
+            [ div [ class "section-add__inputs" ]
+                [ label []
+                    [ text "Name"
+                    , input
+                        [ value model.openReference.name
+                        , autofocus True
+                        , onInput SaveReferenceName
+                        ]
+                        []
                     ]
-                    []
-                ]
-            , label []
-                [ text "Link"
-                , input
-                    [ value model.openReference.link
-                    , onInput SaveReferenceLink
+                , label []
+                    [ text "Link"
+                    , input
+                        [ value model.openReference.link
+                        , onInput SaveReferenceLink
+                        ]
+                        []
                     ]
-                    []
                 ]
             , button
-                [ type_ "submit"
+                [ class "section-add__submit"
+                , type_ "submit"
                 , onClick AddReference
                 ]
-                [ text "+" ]
+                [ FeatherIcons.plusSquare
+                    |> FeatherIcons.withClass "section-add__icon-add"
+                    |> FeatherIcons.toHtml []
+                ]
             ]
+        , renderReferenceList model.referenceList
         ]
 
 
@@ -167,16 +176,44 @@ renderReferenceList : List Reference -> Html Msg
 renderReferenceList lst =
     lst
         |> List.map (\l -> renderReference l)
-        |> ul []
+        |> ul [ class "list" ]
 
 
 renderReference : Reference -> Html Msg
 renderReference ref =
-    li []
-        [ renderRemove ref
-        , img [ src ("https://www.google.com/s2/favicons?domain=" ++ ref.link) ] []
+    li [ class "item" ]
+        [ span [ class "item__actions" ]
+            [ renderRemove ref
+            , renderIcon ref
+            ]
         , renderReferenceText ref
         ]
+
+
+renderRemove : Reference -> Html Msg
+renderRemove ref =
+    button
+        [ type_ "button"
+        , onClick (RemoveReference ref)
+        , class "item__remove"
+        ]
+        [ FeatherIcons.xSquare
+            |> FeatherIcons.withClass "item__icon-remove"
+            |> FeatherIcons.toHtml []
+        ]
+
+
+renderIcon : Reference -> Html Msg
+renderIcon ref =
+    if String.isEmpty ref.link then
+        FeatherIcons.edit2
+            |> FeatherIcons.withClass "item__icon-note"
+            |> FeatherIcons.toHtml []
+
+    else
+        FeatherIcons.link
+            |> FeatherIcons.withClass "item__icon-link"
+            |> FeatherIcons.toHtml []
 
 
 renderReferenceText : { name : String, link : String } -> Html Msg
@@ -186,15 +223,6 @@ renderReferenceText { name, link } =
 
     else
         text name
-
-
-renderRemove : Reference -> Html Msg
-renderRemove ref =
-    button
-        [ type_ "button"
-        , onClick (RemoveReference ref)
-        ]
-        [ text "Remove" ]
 
 
 validReference : { a | name : String, link : String } -> Bool
