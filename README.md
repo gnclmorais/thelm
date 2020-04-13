@@ -1,9 +1,14 @@
-# thelm
-Elm-powered simple link manager.
+# Thelm
+
+Simple note/link manager, powered by [Elm][0] and [localStorage][1].
 
 
 ## Commands
 
-Check `Makefile` to see some handy shortcuts, but there are the main ones:
-☛ `make` compiles Elm into JavaScript
-☛ `make open` will open the application page
+Check `package.json` to see some handy shortcuts, but there are the main ones:
+☛ First `npm run build` compiles Elm into JavaScript,
+☛ Then `open index.html` will open the application page.
+
+
+[0]: https://elm-lang.org
+[1]: https://developer.mozilla.org/en-US/docs/Web/API/Storage
