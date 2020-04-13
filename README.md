@@ -1,3 +1,5 @@
+[![Netlify Status](https://api.netlify.com/api/v1/badges/37df0d99-a006-4b19-a2f3-75c1f9a2973b/deploy-status)](https://app.netlify.com/sites/thelm/deploys)
+
 # Thelm
 
 Simple note/link manager, powered by [Elm][0] and [localStorage][1].
