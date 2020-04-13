@@ -130,25 +130,29 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-    div [ class "wrapper u-height-100" ]
+    div [ class "wrapper" ]
         [ Html.form
             [ class "section-add"
             , onSubmit AddReference
             ]
             [ div [ class "section-add__inputs" ]
-                [ label []
-                    [ text "Name"
+                [ label [ class "section-add__label-text" ]
+                    [ text "Text"
                     , input
                         [ value model.openReference.name
+                        , type_ "text"
+                        , class "section-add__input"
                         , autofocus True
                         , onInput SaveReferenceName
                         ]
                         []
                     ]
-                , label []
+                , label [ class "section-add__label-link" ]
                     [ text "Link"
                     , input
                         [ value model.openReference.link
+                        , type_ "text"
+                        , class "section-add__input"
                         , onInput SaveReferenceLink
                         ]
                         []
