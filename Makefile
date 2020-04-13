@@ -1,5 +1,8 @@
 build:
-	elm make src/Main.elm --output app.js
+	elm make src/Main.elm --output=app.js
+
+build-production:
+	elm make src/Main.elm --optimize --output=app.js
 
 make:
 	elm make src/Main.elm
