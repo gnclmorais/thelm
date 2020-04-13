@@ -1,7 +1,6 @@
 module Main exposing (..)
 
 import Browser
-import Debug exposing (log)
 import FeatherIcons
 import Html exposing (Html, a, button, div, form, input, label, li, span, text, ul)
 import Html.Attributes exposing (autofocus, class, href, type_, value)
@@ -106,8 +105,7 @@ update msg model =
                 )
 
             else
-                log "nothing"
-                    ( model, Cmd.none )
+                ( model, Cmd.none )
 
         RemoveReference ref ->
             let
